@@ -1,0 +1,1224 @@
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>เว็บอ่านหนังสือ - Dark Purple Theme พร้อมอนิเมชันและปากกาเล็กเชอร์</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Kanit&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Kanit', sans-serif;
+    }
+    /* Flip book container */
+    .flip-book {
+      perspective: 1500px;
+      width: 100%;
+      max-width: 600px;
+      height: 420px;
+      margin: 0 auto;
+      position: relative;
+      user-select: none;
+    }
+    /* Each page */
+    .flip-page {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: linear-gradient(135deg, #6b21a8, #4c1d95);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+      backface-visibility: hidden;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      color: white;
+      font-size: 1.125rem;
+      line-height: 1.6;
+      box-sizing: border-box;
+    }
+    /* Front page */
+    .flip-page.front {
+      z-index: 3;
+      transform-origin: left;
+      cursor: pointer;
+      transition: box-shadow 0.3s ease;
+    }
+    .flip-page.front:hover {
+      box-shadow: 0 15px 40px rgba(107,33,168,0.8);
+    }
+    /* Back page */
+    .flip-page.back {
+      background: linear-gradient(135deg, #4c1d95, #6b21a8);
+      transform-origin: right;
+      transform: rotateY(180deg);
+      z-index: 2;
+      cursor: pointer;
+    }
+    /* Flipped state */
+    .flip-page.flipped {
+      animation: flipPage 0.8s forwards ease-in-out;
+      z-index: 1 !important;
+    }
+    .flip-page.flipped-back {
+      animation: flipPageBack 0.8s forwards ease-in-out;
+      z-index: 3 !important;
+    }
+    @keyframes flipPage {
+      0% {
+        transform: rotateY(0deg);
+        z-index: 3;
+      }
+      100% {
+        transform: rotateY(-180deg);
+        z-index: 1;
+      }
+    }
+    @keyframes flipPageBack {
+      0% {
+        transform: rotateY(-180deg);
+        z-index: 1;
+      }
+      100% {
+        transform: rotateY(0deg);
+        z-index: 3;
+      }
+    }
+    /* Page header */
+    .page-header {
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      user-select: text;
+    }
+    /* Page content scroll */
+    .page-content {
+      flex-grow: 1;
+      overflow-y: auto;
+      user-select: text;
+      font-size: 1rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      position: relative;
+    }
+    /* Page image inside content */
+    .page-content img {
+      max-width: 100%;
+      border-radius: 8px;
+      margin: 0.75rem 0;
+      user-select: none;
+      pointer-events: none;
+    }
+    /* Page footer */
+    .page-footer {
+      margin-top: 0.75rem;
+      font-size: 0.875rem;
+      text-align: right;
+      user-select: none;
+      color: #d8b4fe;
+      font-weight: 600;
+    }
+    /* Scrollbar styling */
+    .page-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .page-content::-webkit-scrollbar-thumb {
+      background-color: #a78bfa;
+      border-radius: 3px;
+    }
+    /* Buttons for page navigation */
+    .page-nav-btn {
+      background-color: #6b21a8;
+      border: none;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+      user-select: none;
+    }
+    .page-nav-btn:hover:not(:disabled) {
+      background-color: #7c3aed;
+    }
+    .page-nav-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    /* Modal scroll fix */
+    #readModalBackdrop {
+      overflow-y: auto;
+      padding: 2rem 1rem;
+    }
+    /* Add page input container */
+    #addPageContainer {
+      margin-top: 0.5rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #addPageContent {
+      flex-grow: 1;
+      resize: vertical;
+      min-height: 3rem;
+      max-height: 6rem;
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      font-family: 'Kanit', sans-serif;
+      color: black;
+    }
+    #addPageImageUrl {
+      flex-grow: 1;
+      border-radius: 6px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      font-family: 'Kanit', sans-serif;
+      color: black;
+    }
+    #addPageBtn {
+      background-color: #7c3aed;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      border: none;
+    }
+    #addPageBtn:hover {
+      background-color: #a78bfa;
+    }
+    /* Page list container */
+    #pagesList {
+      max-height: 150px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      border: 1px solid #6b21a8;
+      border-radius: 8px;
+      background: #4c1d95;
+      padding: 0.5rem;
+      color: white;
+      font-size: 0.9rem;
+      user-select: none;
+    }
+    #pagesList div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      background: #5b21b6;
+    }
+    #pagesList div:last-child {
+      margin-bottom: 0;
+    }
+    #pagesList div span {
+      flex-grow: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      padding-right: 0.5rem;
+    }
+    #pagesList div button {
+      background: transparent;
+      border: none;
+      color: #f87171;
+      cursor: pointer;
+      font-size: 1.1rem;
+      user-select: none;
+      transition: color 0.3s ease;
+    }
+    #pagesList div button:hover {
+      color: #fca5a5;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 640px) {
+      .flip-book {
+        height: 360px;
+      }
+      .flip-page {
+        padding: 16px;
+        font-size: 1rem;
+      }
+      .page-header {
+        font-size: 1.25rem;
+      }
+    }
+    /* Lecture pen toolbar */
+    #lecturePenToolbar {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(107,33,168,0.85);
+      border-radius: 8px;
+      padding: 6px 10px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+      user-select: none;
+      color: white;
+      font-weight: 600;
+      font-size: 0.9rem;
+      align-items: center;
+    }
+    #lecturePenToolbar label {
+      cursor: pointer;
+    }
+    #lecturePenToolbar input[type="color"] {
+      border: none;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    #lecturePenToolbar button {
+      background: transparent;
+      border: none;
+      color: white;
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 0 4px;
+      transition: color 0.3s ease;
+    }
+    #lecturePenToolbar button:hover {
+      color: #d8b4fe;
+    }
+    /* Highlight style */
+    .highlight-lecture-pen {
+      background-color: rgba(255, 255, 0, 0.5);
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .highlight-lecture-pen:hover {
+      background-color: rgba(255, 255, 0, 0.8);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-purple-900 via-purple-800 to-gray-900 min-h-screen text-white">
+  <div class="max-w-7xl mx-auto p-4">
+    <header class="flex flex-col sm:flex-row justify-between items-center mb-6">
+      <h1 class="text-3xl font-extrabold text-white mb-4 sm:mb-0">เว็บอ่านหนังสือ</h1>
+      <button
+        id="addBookBtn"
+        class="bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded shadow flex items-center gap-2"
+        aria-label="เพิ่มหนังสือใหม่"
+      >
+        <i class="fas fa-plus"></i> เพิ่มหนังสือใหม่
+      </button>
+    </header>
+
+    <main>
+      <section id="booksContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <!-- Books will be dynamically inserted here -->
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal backdrop for add/edit book -->
+  <div
+    id="modalBackdrop"
+    class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden"
+    aria-modal="true"
+    role="dialog"
+    aria-labelledby="modalTitle"
+  >
+    <div
+      class="bg-gradient-to-br from-purple-900 via-purple-800 to-gray-900 rounded-lg shadow-lg w-full max-w-3xl p-6 relative max-h-[90vh] overflow-y-auto"
+    >
+      <button
+        id="closeModalBtn"
+        class="absolute top-3 right-3 text-purple-300 hover:text-white text-2xl"
+        aria-label="ปิด"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+      <h2 class="text-2xl font-bold mb-4 text-white" id="modalTitle">เพิ่ม / แก้ไขหนังสือ</h2>
+      <form id="bookForm" class="space-y-4 text-gray-200" novalidate>
+        <div>
+          <label for="bookName" class="block mb-1 font-semibold">ชื่อเรื่องหนังสือ</label>
+          <input
+            type="text"
+            id="bookName"
+            name="bookName"
+            required
+            class="w-full rounded-md px-3 py-2 text-black"
+            placeholder="ใส่ชื่อเรื่องหนังสือ"
+            aria-required="true"
+          />
+        </div>
+        <div>
+          <label for="bookImage" class="block mb-1 font-semibold">URL รูปภาพหน้าปก</label>
+          <input
+            type="url"
+            id="bookImage"
+            name="bookImage"
+            required
+            class="w-full rounded-md px-3 py-2 text-black"
+            placeholder="https://placehold.co/200x300?text=หน้าปก"
+            aria-required="true"
+          />
+        </div>
+        <div>
+          <label for="bookColor" class="block mb-1 font-semibold">สีของหนังสือ (เลือกสีพื้นหลังของการ์ด)</label>
+          <input
+            type="color"
+            id="bookColor"
+            name="bookColor"
+            value="#6b21a8"
+            class="w-16 h-10 p-0 border-0 rounded cursor-pointer"
+            title="เลือกสีพื้นหลังของหนังสือ"
+          />
+        </div>
+        <div>
+          <label class="block mb-1 font-semibold">เนื้อหาหนังสือ (เพิ่มหน้าใหม่ด้านล่าง)</label>
+          <div id="pagesList" aria-live="polite" aria-label="รายการหน้าหนังสือ"></div>
+          <div id="addPageContainer" class="mt-2">
+            <textarea
+              id="addPageContent"
+              placeholder="พิมพ์เนื้อหาหน้าหนังสือ (รองรับข้อความและใส่แท็ก [img]URL[/img] เพื่อแทรกรูปภาพ)"
+              aria-label="เนื้อหาหน้าใหม่"
+              rows="2"
+            ></textarea>
+            <button type="button" id="addPageBtn" aria-label="เพิ่มหน้าใหม่">เพิ่มหน้า</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="bookPinned" name="bookPinned" class="w-5 h-5" />
+            <span>ปักหมุดหนังสือ</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="bookVisible" name="bookVisible" checked class="w-5 h-5" />
+            <span>เปิดใช้งานหนังสือ</span>
+          </label>
+        </div>
+        <div class="flex justify-end gap-4 pt-4 border-t border-purple-700">
+          <button
+            type="button"
+            id="deleteBookBtn"
+            class="bg-red-700 hover:bg-red-600 px-4 py-2 rounded text-white hidden"
+            aria-label="ลบหนังสือ"
+          >
+            ลบหนังสือ
+          </button>
+          <button
+            type="submit"
+            class="bg-purple-700 hover:bg-purple-600 px-6 py-2 rounded text-white font-semibold"
+            aria-label="บันทึกหนังสือ"
+          >
+            บันทึก
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Book reading modal with flip animation -->
+  <div
+    id="readModalBackdrop"
+    class="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 hidden p-4"
+    aria-modal="true"
+    role="dialog"
+    aria-labelledby="readBookTitle"
+  >
+    <div
+      class="bg-gradient-to-br from-purple-900 via-purple-800 to-gray-900 rounded-lg shadow-lg w-full max-w-3xl p-6 relative flex flex-col items-center"
+      style="max-height: 90vh;"
+    >
+      <button
+        id="closeReadModalBtn"
+        class="absolute top-3 right-3 text-purple-300 hover:text-white text-2xl"
+        aria-label="ปิด"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+      <h3 id="readBookTitle" class="text-3xl font-bold mb-6 text-white text-center select-text"></h3>
+
+      <div class="flip-book" aria-live="polite" aria-atomic="true" aria-relevant="additions removals" aria-label="เนื้อหาหนังสือ">
+        <div class="flip-page front" tabindex="0" role="document" aria-label="หน้าหนังสือด้านหน้า"></div>
+        <div class="flip-page back" tabindex="0" role="document" aria-label="หน้าหนังสือด้านหลัง"></div>
+      </div>
+
+      <div id="lecturePenToolbar" aria-label="เครื่องมือปากกาเล็กเชอร์" role="toolbar" aria-live="polite" aria-atomic="true" aria-relevant="additions removals">
+        <label for="highlightColorPicker" title="เลือกสีปากกาเล็กเชอร์">
+          <input type="color" id="highlightColorPicker" value="#ffff00" aria-label="เลือกสีปากกาเล็กเชอร์" />
+        </label>
+        <button id="clearHighlightsBtn" title="ล้างปากกาเล็กเชอร์" aria-label="ล้างปากกาเล็กเชอร์">
+          <i class="fas fa-eraser"></i>
+        </button>
+        <button id="toggleLecturePenBtn" title="เปิด/ปิด ปากกาเล็กเชอร์" aria-pressed="false" aria-label="เปิด/ปิด ปากกาเล็กเชอร์">
+          <i class="fas fa-highlighter"></i>
+        </button>
+      </div>
+
+      <div class="flex justify-between items-center mt-6 w-full max-w-3xl">
+        <button
+          id="prevPageBtn"
+          class="page-nav-btn"
+          aria-label="หน้าก่อนหน้า"
+          disabled
+        >
+          <i class="fas fa-arrow-left mr-2"></i> หน้าเก่า
+        </button>
+        <span id="pageIndicator" class="text-white font-semibold select-none"></span>
+        <button
+          id="nextPageBtn"
+          class="page-nav-btn"
+          aria-label="หน้าถัดไป"
+          disabled
+        >
+          หน้าใหม่ <i class="fas fa-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data structure for books
+    let books = [];
+
+    // Current editing book index
+    let editingIndex = null;
+
+    // Current reading book index and page
+    let readingIndex = null;
+    let currentPage = 0;
+
+    // Pages content for editing (array of strings)
+    let editingPages = [];
+
+    const booksContainer = document.getElementById('booksContainer');
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const readModalBackdrop = document.getElementById('readModalBackdrop');
+    const bookForm = document.getElementById('bookForm');
+    const addBookBtn = document.getElementById('addBookBtn');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+    const deleteBookBtn = document.getElementById('deleteBookBtn');
+    const modalTitle = document.getElementById('modalTitle');
+
+    const readBookTitle = document.getElementById('readBookTitle');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const prevPageBtn = document.getElementById('prevPageBtn');
+    const nextPageBtn = document.getElementById('nextPageBtn');
+    const closeReadModalBtn = document.getElementById('closeReadModalBtn');
+
+    const pagesList = document.getElementById('pagesList');
+    const addPageContent = document.getElementById('addPageContent');
+    const addPageBtn = document.getElementById('addPageBtn');
+
+    // Flip book elements
+    const flipBook = document.querySelector('.flip-book');
+    const frontPage = flipBook.querySelector('.flip-page.front');
+    const backPage = flipBook.querySelector('.flip-page.back');
+
+    // Lecture pen elements
+    const lecturePenToolbar = document.getElementById('lecturePenToolbar');
+    const highlightColorPicker = document.getElementById('highlightColorPicker');
+    const clearHighlightsBtn = document.getElementById('clearHighlightsBtn');
+    const toggleLecturePenBtn = document.getElementById('toggleLecturePenBtn');
+
+    // Lecture pen state
+    let lecturePenActive = false;
+    let lecturePenColor = highlightColorPicker.value;
+
+    // Load books from localStorage
+    function loadBooks() {
+      const saved = localStorage.getItem('booksData');
+      if (saved) {
+        books = JSON.parse(saved);
+      } else {
+        // Initialize with 3 sample books
+        books = [
+          {
+            name: 'นิทานพื้นบ้านไทย',
+            image: 'https://placehold.co/200x300/purple/white?text=นิทานพื้นบ้านไทย',
+            color: '#6b21a8',
+            pages: 5,
+            content: [
+              'หน้า 1: กาลครั้งหนึ่งนานมาแล้ว...',
+              'หน้า 2: มีเด็กชายคนหนึ่งชื่อสมชาย...',
+              'หน้า 3: สมชายได้พบกับมังกรในป่า...',
+              'หน้า 4: มังกรสอนให้สมชายรู้จักความกล้าหาญ...',
+              'หน้า 5: และสมชายก็กลายเป็นฮีโร่ของหมู่บ้าน',
+            ],
+            pinned: true,
+            visible: true,
+          },
+          {
+            name: 'เรื่องสั้นแฟนตาซี',
+            image: 'https://placehold.co/200x300/4c1d95/fff?text=เรื่องสั้นแฟนตาซี',
+            color: '#4c1d95',
+            pages: 7,
+            content: [
+              'หน้า 1: โลกแห่งเวทมนตร์เปิดกว้าง...',
+              'หน้า 2: เจ้าหญิงเอลินเดินทางสู่ป่าเวทมนตร์...',
+              'หน้า 3: เธอพบกับภูติจิ๋วที่ช่วยเหลือ...',
+              'หน้า 4: การผจญภัยเริ่มต้นขึ้น...',
+              'หน้า 5: ศัตรูปรากฏตัวในเงามืด...',
+              'หน้า 6: เอลินใช้เวทมนตร์เพื่อปกป้องอาณาจักร...',
+              'หน้า 7: และสันติสุขกลับคืนมา',
+            ],
+            pinned: false,
+            visible: true,
+          },
+          {
+            name: 'สารคดีธรรมชาติ',
+            image: 'https://placehold.co/200x300/7e22ce/fff?text=สารคดีธรรมชาติ',
+            color: '#7e22ce',
+            pages: 4,
+            content: [
+              'หน้า 1: ป่าเขตร้อนชื้นเป็นบ้านของสัตว์หลากหลายชนิด...',
+              'หน้า 2: นกแก้วสีสันสดใสบินผ่านยอดไม้...',
+              'หน้า 3: แมลงกลางคืนทำหน้าที่สำคัญในระบบนิเวศ...',
+              'หน้า 4: การอนุรักษ์ป่าช่วยรักษาความสมดุลของโลก',
+            ],
+            pinned: false,
+            visible: true,
+          },
+        ];
+        saveBooks();
+      }
+    }
+
+    // Save books to localStorage
+    function saveBooks() {
+      localStorage.setItem('booksData', JSON.stringify(books));
+    }
+
+    // Render all books
+    function renderBooks() {
+      // Sort pinned books first
+      const sortedBooks = [...books].sort((a, b) => (b.pinned === true) - (a.pinned === true));
+      booksContainer.innerHTML = '';
+      sortedBooks.forEach((book, index) => {
+        if (!book.visible) return;
+        const card = document.createElement('div');
+        card.className = 'rounded-lg shadow-lg cursor-pointer flex flex-col bg-opacity-90';
+        card.style.backgroundColor = book.color;
+
+        // Card content
+        card.innerHTML = `
+          <img
+            src="${book.image}"
+            alt="หน้าปกหนังสือเรื่อง ${book.name} ภาพหน้าปกสีสันโทนม่วงเข้ม"
+            class="rounded-t-lg object-cover w-full h-48"
+            loading="lazy"
+          />
+          <div class="p-4 flex flex-col flex-grow">
+            <h3 class="text-xl font-bold mb-2 text-white truncate">${book.name}</h3>
+            <div class="flex-grow text-white text-sm mb-3 overflow-hidden">
+              <p class="line-clamp-3">${book.content.slice(0, 3).join(' ')}</p>
+            </div>
+            <div class="flex justify-between items-center">
+              <button
+                class="editBookBtn bg-purple-800 hover:bg-purple-700 text-white px-3 py-1 rounded flex items-center gap-1"
+                data-index="${index}"
+                aria-label="แก้ไขหนังสือ ${book.name}"
+              >
+                <i class="fas fa-edit"></i> แก้ไข
+              </button>
+              <button
+                class="pinBookBtn text-yellow-400 hover:text-yellow-300"
+                data-index="${index}"
+                aria-label="${book.pinned ? 'ยกเลิกปักหมุด' : 'ปักหมุด'} หนังสือ ${book.name}"
+                title="${book.pinned ? 'ยกเลิกปักหมุด' : 'ปักหมุด'}"
+              >
+                <i class="${book.pinned ? 'fas' : 'far'} fa-star fa-lg"></i>
+              </button>
+              <button
+                class="toggleVisibleBtn text-gray-300 hover:text-white"
+                data-index="${index}"
+                aria-label="${book.visible ? 'ปิดใช้งาน' : 'เปิดใช้งาน'} หนังสือ ${book.name}"
+                title="${book.visible ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}"
+              >
+                <i class="fas fa-eye${book.visible ? '' : '-slash'} fa-lg"></i>
+              </button>
+              <button
+                class="deleteBookBtn text-red-500 hover:text-red-400"
+                data-index="${index}"
+                aria-label="ลบหนังสือ ${book.name}"
+                title="ลบหนังสือ"
+              >
+                <i class="fas fa-trash-alt fa-lg"></i>
+              </button>
+            </div>
+          </div>
+        `;
+
+        // Open reading modal on card click except buttons
+        card.addEventListener('click', (e) => {
+          if (
+            e.target.closest('button') ||
+            e.target.closest('i')
+          ) {
+            return;
+          }
+          openReadModal(index);
+        });
+
+        booksContainer.appendChild(card);
+      });
+
+      // Attach event listeners for edit, pin, toggle, delete buttons
+      document.querySelectorAll('.editBookBtn').forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = +btn.dataset.index;
+          openEditModal(idx);
+        };
+      });
+      document.querySelectorAll('.pinBookBtn').forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = +btn.dataset.index;
+          books[idx].pinned = !books[idx].pinned;
+          saveBooks();
+          renderBooks();
+        };
+      });
+      document.querySelectorAll('.toggleVisibleBtn').forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = +btn.dataset.index;
+          books[idx].visible = !books[idx].visible;
+          saveBooks();
+          renderBooks();
+        };
+      });
+      document.querySelectorAll('.deleteBookBtn').forEach((btn) => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const idx = +btn.dataset.index;
+          if (confirm(`คุณต้องการลบหนังสือ "${books[idx].name}" หรือไม่?`)) {
+            books.splice(idx, 1);
+            saveBooks();
+            renderBooks();
+            closeModal();
+          }
+        };
+      });
+    }
+
+    // Open modal for adding new book
+    addBookBtn.addEventListener('click', () => {
+      editingIndex = null;
+      modalTitle.textContent = 'เพิ่มหนังสือใหม่';
+      deleteBookBtn.classList.add('hidden');
+      bookForm.reset();
+      // Set default color and visible checked
+      document.getElementById('bookColor').value = '#6b21a8';
+      document.getElementById('bookVisible').checked = true;
+      document.getElementById('bookPinned').checked = false;
+      editingPages = [];
+      renderPagesList();
+      openModal();
+    });
+
+    // Open modal for editing book
+    function openEditModal(index) {
+      editingIndex = index;
+      modalTitle.textContent = 'แก้ไขหนังสือ';
+      deleteBookBtn.classList.remove('hidden');
+      const book = books[index];
+      document.getElementById('bookName').value = book.name;
+      document.getElementById('bookImage').value = book.image;
+      document.getElementById('bookColor').value = book.color;
+      document.getElementById('bookVisible').checked = book.visible;
+      document.getElementById('bookPinned').checked = book.pinned;
+      editingPages = [...book.content];
+      renderPagesList();
+      openModal();
+    }
+
+    // Open modal
+    function openModal() {
+      modalBackdrop.classList.remove('hidden');
+      addPageContent.focus();
+    }
+
+    // Close modal
+    function closeModal() {
+      modalBackdrop.classList.add('hidden');
+      editingIndex = null;
+      editingPages = [];
+      pagesList.innerHTML = '';
+      addPageContent.value = '';
+    }
+
+    closeModalBtn.addEventListener('click', closeModal);
+
+    // Delete book button in modal
+    deleteBookBtn.addEventListener('click', () => {
+      if (editingIndex !== null) {
+        if (confirm(`คุณต้องการลบหนังสือ "${books[editingIndex].name}" หรือไม่?`)) {
+          books.splice(editingIndex, 1);
+          saveBooks();
+          renderBooks();
+          closeModal();
+        }
+      }
+    });
+
+    // Render pages list in modal
+    function renderPagesList() {
+      pagesList.innerHTML = '';
+      if (editingPages.length === 0) {
+        pagesList.innerHTML = '<p class="text-purple-300 italic select-none">ยังไม่มีหน้าในหนังสือ</p>';
+        return;
+      }
+      editingPages.forEach((page, i) => {
+        const div = document.createElement('div');
+        div.setAttribute('role', 'listitem');
+        const span = document.createElement('span');
+        span.textContent = `หน้า ${i + 1}: ${page.length > 40 ? page.slice(0, 40) + '...' : page}`;
+        span.title = page;
+        div.appendChild(span);
+        const delBtn = document.createElement('button');
+        delBtn.setAttribute('aria-label', `ลบหน้า ${i + 1}`);
+        delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+        delBtn.onclick = () => {
+          if (confirm(`คุณต้องการลบหน้า ${i + 1} หรือไม่?`)) {
+            editingPages.splice(i, 1);
+            renderPagesList();
+          }
+        };
+        div.appendChild(delBtn);
+        pagesList.appendChild(div);
+      });
+    }
+
+    // Add page button click
+    addPageBtn.addEventListener('click', () => {
+      let content = addPageContent.value.trim();
+      if (!content) {
+        alert('กรุณาใส่เนื้อหาหน้าหนังสือก่อนเพิ่ม');
+        addPageContent.focus();
+        return;
+      }
+      if (editingPages.length >= 15) {
+        alert('เพิ่มหน้าได้สูงสุด 15 หน้า');
+        return;
+      }
+      editingPages.push(content);
+      addPageContent.value = '';
+      renderPagesList();
+      addPageContent.focus();
+    });
+
+    // Handle form submit
+    bookForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('bookName').value.trim();
+      const image = document.getElementById('bookImage').value.trim();
+      const color = document.getElementById('bookColor').value;
+      const pinned = document.getElementById('bookPinned').checked;
+      const visible = document.getElementById('bookVisible').checked;
+
+      if (editingPages.length === 0) {
+        alert('กรุณาเพิ่มหน้าอย่างน้อย 1 หน้าในหนังสือ');
+        return;
+      }
+
+      const pages = editingPages.length;
+
+      const newBook = {
+        name,
+        image,
+        color,
+        pages,
+        content: [...editingPages],
+        pinned,
+        visible,
+      };
+
+      if (editingIndex === null) {
+        books.push(newBook);
+      } else {
+        books[editingIndex] = newBook;
+      }
+      saveBooks();
+      renderBooks();
+      closeModal();
+    });
+
+    // Open reading modal
+    function openReadModal(index) {
+      readingIndex = index;
+      currentPage = 0;
+      updateReadModal(true);
+      readModalBackdrop.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      frontPage.focus();
+      lecturePenActive = false;
+      toggleLecturePenBtn.setAttribute('aria-pressed', 'false');
+      lecturePenToolbar.style.display = 'flex';
+      clearAllHighlights();
+    }
+
+    // Close reading modal
+    function closeReadModal() {
+      readModalBackdrop.classList.add('hidden');
+      readingIndex = null;
+      currentPage = 0;
+      document.body.style.overflow = '';
+      resetFlipPages();
+      lecturePenActive = false;
+      clearAllHighlights();
+    }
+
+    closeReadModalBtn.addEventListener('click', closeReadModal);
+
+    prevPageBtn.addEventListener('click', () => {
+      if (currentPage > 0) {
+        flipToPage(currentPage - 1);
+        clearAllHighlights();
+      }
+    });
+
+    nextPageBtn.addEventListener('click', () => {
+      if (readingIndex !== null && currentPage < books[readingIndex].pages - 1) {
+        flipToPage(currentPage + 1);
+        clearAllHighlights();
+      }
+    });
+
+    // Reset flip pages to default front and back states
+    function resetFlipPages() {
+      frontPage.classList.remove('flipped', 'flipped-back');
+      backPage.classList.remove('flipped', 'flipped-back');
+      frontPage.style.zIndex = 3;
+      backPage.style.zIndex = 2;
+      frontPage.innerHTML = '';
+      backPage.innerHTML = '';
+    }
+
+    // Parse page content to HTML with images and highlight spans
+    function parsePageContent(text) {
+      // Replace [img]URL[/img] with <img> tag
+      const imgTagRegex = /\[img\](https?:\/\/[^\s]+?)\[\/img\]/gi;
+      let html = text.replace(imgTagRegex, (match, url) => {
+        // Sanitize URL (basic)
+        if (!url.startsWith('http')) return '';
+        return `<img src="${url}" alt="รูปภาพในหน้าหนังสือ" loading="lazy" />`;
+      });
+      // Escape other text for safety (basic)
+      html = html.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      // Then re-insert images (already replaced)
+      html = html.replace(/&lt;img src="(https?:\/\/[^\s]+?)" alt="รูปภาพในหน้าหนังสือ" loading="lazy" \/&gt;/g, (m, u) => {
+        return `<img src="${u}" alt="รูปภาพในหน้าหนังสือ" loading="lazy" />`;
+      });
+      // Replace newlines with <br>
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
+    // Update reading modal content and buttons with flip animation
+    let isFlipping = false;
+    function updateReadModal(initial = false) {
+      if (readingIndex === null) return;
+      const book = books[readingIndex];
+      readBookTitle.textContent = book.name;
+      pageIndicator.textContent = `หน้า ${currentPage + 1} / ${book.pages}`;
+      prevPageBtn.disabled = currentPage === 0;
+      nextPageBtn.disabled = currentPage === book.pages - 1;
+
+      if (initial) {
+        // Show first page front, second page back or blank
+        frontPage.style.backgroundColor = book.color;
+        backPage.style.backgroundColor = book.color;
+        frontPage.classList.remove('flipped', 'flipped-back');
+        backPage.classList.remove('flipped', 'flipped-back');
+        frontPage.style.zIndex = 3;
+        backPage.style.zIndex = 2;
+
+        frontPage.innerHTML = `
+          <div class="page-header">${book.name} - หน้า ${currentPage + 1}</div>
+          <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage])}</div>
+          <div class="page-footer">หน้า ${currentPage + 1}</div>
+        `;
+        if (currentPage + 1 < book.pages) {
+          backPage.innerHTML = `
+            <div class="page-header">${book.name} - หน้า ${currentPage + 2}</div>
+            <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage + 1])}</div>
+            <div class="page-footer">หน้า ${currentPage + 2}</div>
+          `;
+        } else {
+          backPage.innerHTML = `
+            <div class="page-header">หน้าว่าง</div>
+            <div class="page-content" tabindex="0">ไม่มีเนื้อหาเพิ่มเติม</div>
+            <div class="page-footer"></div>
+          `;
+        }
+        attachLecturePenEvents();
+        return;
+      }
+    }
+
+    // Flip animation to target page
+    function flipToPage(targetPage) {
+      if (isFlipping || readingIndex === null) return;
+      const book = books[readingIndex];
+      if (targetPage < 0 || targetPage >= book.pages) return;
+
+      isFlipping = true;
+
+      // Determine flip direction
+      const forward = targetPage > currentPage;
+
+      // Prepare pages for animation
+      frontPage.style.backgroundColor = book.color;
+      backPage.style.backgroundColor = book.color;
+
+      if (forward) {
+        // Front page flips away, back page shows next page
+        frontPage.classList.add('flipped');
+        backPage.classList.add('flipped-back');
+
+        // After animation, update content and reset classes
+        setTimeout(() => {
+          currentPage = targetPage;
+          frontPage.classList.remove('flipped', 'flipped-back');
+          backPage.classList.remove('flipped', 'flipped-back');
+          frontPage.style.zIndex = 3;
+          backPage.style.zIndex = 2;
+
+          frontPage.innerHTML = `
+            <div class="page-header">${book.name} - หน้า ${currentPage + 1}</div>
+            <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage])}</div>
+            <div class="page-footer">หน้า ${currentPage + 1}</div>
+          `;
+          if (currentPage + 1 < book.pages) {
+            backPage.innerHTML = `
+              <div class="page-header">${book.name} - หน้า ${currentPage + 2}</div>
+              <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage + 1])}</div>
+              <div class="page-footer">หน้า ${currentPage + 2}</div>
+            `;
+          } else {
+            backPage.innerHTML = `
+              <div class="page-header">หน้าว่าง</div>
+              <div class="page-content" tabindex="0">ไม่มีเนื้อหาเพิ่มเติม</div>
+              <div class="page-footer"></div>
+            `;
+          }
+          pageIndicator.textContent = `หน้า ${currentPage + 1} / ${book.pages}`;
+          prevPageBtn.disabled = currentPage === 0;
+          nextPageBtn.disabled = currentPage === book.pages - 1;
+          isFlipping = false;
+          attachLecturePenEvents();
+          frontPage.focus();
+        }, 800);
+      } else {
+        // Back page flips back, front page shows previous page
+        frontPage.classList.add('flipped-back');
+        backPage.classList.add('flipped');
+
+        setTimeout(() => {
+          currentPage = targetPage;
+          frontPage.classList.remove('flipped', 'flipped-back');
+          backPage.classList.remove('flipped', 'flipped-back');
+          frontPage.style.zIndex = 3;
+          backPage.style.zIndex = 2;
+
+          frontPage.innerHTML = `
+            <div class="page-header">${book.name} - หน้า ${currentPage + 1}</div>
+            <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage])}</div>
+            <div class="page-footer">หน้า ${currentPage + 1}</div>
+          `;
+          if (currentPage + 1 < book.pages) {
+            backPage.innerHTML = `
+              <div class="page-header">${book.name} - หน้า ${currentPage + 2}</div>
+              <div class="page-content" tabindex="0">${parsePageContent(book.content[currentPage + 1])}</div>
+              <div class="page-footer">หน้า ${currentPage + 2}</div>
+            `;
+          } else {
+            backPage.innerHTML = `
+              <div class="page-header">หน้าว่าง</div>
+              <div class="page-content" tabindex="0">ไม่มีเนื้อหาเพิ่มเติม</div>
+              <div class="page-footer"></div>
+            `;
+          }
+          pageIndicator.textContent = `หน้า ${currentPage + 1} / ${book.pages}`;
+          prevPageBtn.disabled = currentPage === 0;
+          nextPageBtn.disabled = currentPage === book.pages - 1;
+          isFlipping = false;
+          attachLecturePenEvents();
+          frontPage.focus();
+        }, 800);
+      }
+    }
+
+    // Keyboard navigation for reading modal
+    readModalBackdrop.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        e.preventDefault();
+        if (!nextPageBtn.disabled) nextPageBtn.click();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        if (!prevPageBtn.disabled) prevPageBtn.click();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeReadModal();
+      }
+    });
+
+    // Close modals on Escape key (for add/edit modal)
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (!modalBackdrop.classList.contains('hidden')) {
+          closeModal();
+        }
+      }
+    });
+
+    // Lecture Pen Functions
+
+    // Toggle lecture pen on/off
+    toggleLecturePenBtn.addEventListener('click', () => {
+      lecturePenActive = !lecturePenActive;
+      toggleLecturePenBtn.setAttribute('aria-pressed', lecturePenActive.toString());
+      if (lecturePenActive) {
+        toggleLecturePenBtn.classList.add('text-yellow-300');
+        enableLecturePen();
+      } else {
+        toggleLecturePenBtn.classList.remove('text-yellow-300');
+        disableLecturePen();
+      }
+    });
+
+    // Update lecture pen color
+    highlightColorPicker.addEventListener('input', () => {
+      lecturePenColor = highlightColorPicker.value;
+    });
+
+    // Clear all highlights button
+    clearHighlightsBtn.addEventListener('click', () => {
+      clearAllHighlights();
+    });
+
+    // Enable lecture pen: add event listeners to page content
+    function enableLecturePen() {
+      const pageContentDiv = frontPage.querySelector('.page-content');
+      if (!pageContentDiv) return;
+      pageContentDiv.style.userSelect = 'text';
+      pageContentDiv.addEventListener('mouseup', handleTextSelection);
+      pageContentDiv.addEventListener('touchend', handleTextSelection);
+    }
+
+    // Disable lecture pen: remove event listeners
+    function disableLecturePen() {
+      const pageContentDiv = frontPage.querySelector('.page-content');
+      if (!pageContentDiv) return;
+      pageContentDiv.style.userSelect = 'none';
+      pageContentDiv.removeEventListener('mouseup', handleTextSelection);
+      pageContentDiv.removeEventListener('touchend', handleTextSelection);
+    }
+
+    // Clear all highlights on current page
+    function clearAllHighlights() {
+      if (readingIndex === null) return;
+      const book = books[readingIndex];
+      // Remove all highlight spans from current page content string
+      // We store content as plain text with [img] tags, so highlights are only in DOM
+      // So just re-render current page content without highlights
+      updateReadModal(true);
+    }
+
+    // Handle text selection and highlight
+    function handleTextSelection(e) {
+      if (!lecturePenActive) return;
+      const selection = window.getSelection();
+      if (!selection || selection.isCollapsed) return;
+
+      // Only allow selection inside page-content div
+      const pageContentDiv = frontPage.querySelector('.page-content');
+      if (!pageContentDiv.contains(selection.anchorNode) || !pageContentDiv.contains(selection.focusNode)) {
+        return;
+      }
+
+      // Get selected text length
+      const selectedText = selection.toString();
+      if (selectedText.length === 0) return;
+
+      // Limit highlight length to max 30 characters
+      if (selectedText.length > 30) {
+        alert('เลือกข้อความได้ไม่เกิน 30 ตัวอักษร');
+        selection.removeAllRanges();
+        return;
+      }
+
+      // Create highlight span
+      const range = selection.getRangeAt(0);
+
+      // Prevent highlight across multiple elements (like images)
+      if (range.startContainer !== range.endContainer) {
+        alert('กรุณาเลือกข้อความภายในบรรทัดเดียวกัน');
+        selection.removeAllRanges();
+        return;
+      }
+
+      // Only allow text nodes to be highlighted
+      if (range.startContainer.nodeType !== Node.TEXT_NODE) {
+        alert('กรุณาเลือกข้อความที่เป็นตัวอักษรเท่านั้น');
+        selection.removeAllRanges();
+        return;
+      }
+
+      // Wrap selected text in span.highlight-lecture-pen
+      const span = document.createElement('span');
+      span.className = 'highlight-lecture-pen';
+      span.style.backgroundColor = lecturePenColor;
+      span.title = 'ปากกาเล็กเชอร์';
+
+      try {
+        range.surroundContents(span);
+      } catch (err) {
+        // If error (e.g. partial selection of non-text nodes), fallback to safer method
+        alert('ไม่สามารถทำไฮไลท์ข้อความนี้ได้ กรุณาเลือกข้อความใหม่');
+        selection.removeAllRanges();
+        return;
+      }
+
+      // Clear selection
+      selection.removeAllRanges();
+
+      // Add click event to highlight to allow removal on click
+      span.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        if (confirm('ต้องการลบปากกาเล็กเชอร์นี้หรือไม่?')) {
+          const parent = span.parentNode;
+          while (span.firstChild) {
+            parent.insertBefore(span.firstChild, span);
+          }
+          parent.removeChild(span);
+        }
+      });
+    }
+
+    // Attach lecture pen events to current page content
+    function attachLecturePenEvents() {
+      if (lecturePenActive) {
+        enableLecturePen();
+      } else {
+        disableLecturePen();
+      }
+    }
+
+    // Initialize
+    loadBooks();
+    renderBooks();
+  </script>
+</body>
+</html>
